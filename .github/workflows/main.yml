@@ -10,14 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: Install dependencies and Chrome
       run: |
         sudo apt-get update
         sudo apt-get install -y wget unzip
@@ -28,7 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install DrissionPage
 
-    - name: Download ChromeDriver
+    - name: Download and setup ChromeDriver
       run: |
         CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
         wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}"
@@ -36,7 +37,7 @@ jobs:
         unzip chromedriver_linux64.zip
         sudo mv chromedriver /usr/local/bin/
 
-    - name: Run script and generate accounts.txt
+    - name: Run Python script to generate accounts.txt
       run: python 1.py
 
     - name: Upload accounts.txt as artifact
