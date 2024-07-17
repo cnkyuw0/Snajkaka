@@ -1,4 +1,4 @@
-name: Python with Chrome and Artifact
+name: Install ChromeDriver
 
 on:
   push:
@@ -18,27 +18,27 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install dependencies and Chrome
+    - name: Install Google Chrome
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget unzip
-        sudo wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
-        python -m pip install --upgrade pip
-        pip install DrissionPage
 
-    - name: Download and setup ChromeDriver
+    - name: Install ChromeDriver
       run: |
         CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
-        wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}"
-        wget "https://chromedriver.storage.googleapis.com/$(cat LATEST_RELEASE_${CHROME_VERSION})/chromedriver_linux64.zip"
-        unzip chromedriver_linux64.zip
-        sudo mv chromedriver /usr/local/bin/
+        wget -q -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}/chromedriver_linux64.zip"
+        unzip /tmp/chromedriver.zip -d /tmp
+        sudo mv /tmp/chromedriver /usr/local/bin/
+        sudo chmod +x /usr/local/bin/chromedriver
 
-    - name: Run Python script to generate accounts.txt
-      run: python 1.py
+    - name: Verify ChromeDriver installation
+      run: chromedriver --version
+
+    - name: Run Python script
+      run: |
+        python -m pip install --upgrade pip
+        pip install DrissionPage
+        python 1.py
 
     - name: Upload accounts.txt as artifact
       if: success()
