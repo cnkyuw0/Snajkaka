@@ -1,4 +1,4 @@
-name: Install ChromeDriver
+name: Python with Chrome
 
 on:
   push:
@@ -23,22 +23,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
 
-    - name: Install ChromeDriver
-      run: |
-        CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
-        wget -q -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}/chromedriver_linux64.zip"
-        unzip /tmp/chromedriver.zip -d /tmp
-        sudo mv /tmp/chromedriver /usr/local/bin/
-        sudo chmod +x /usr/local/bin/chromedriver
+    - name: Verify Google Chrome installation
+      run: google-chrome --version
 
-    - name: Verify ChromeDriver installation
-      run: chromedriver --version
-
-    - name: Run Python script
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install DrissionPage
-        python 1.py
+        pip install DrissionPage  # 或其他你需要的 Python 库
+
+    - name: Run Python script
+      run: python 1.py
 
     - name: Upload accounts.txt as artifact
       if: success()
