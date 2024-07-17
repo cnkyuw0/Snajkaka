@@ -1,26 +1,47 @@
-name: Python CI
+name: Python with Chrome and Artifact
 
 on:
   push:
     branches:
-      - main  # 这里可以根据你的主分支名称调整
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用最新的 Ubuntu Runner
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2  # 检出你的仓库内容
+    - uses: actions/checkout@v2
 
-    - name: Set up Python  # 设置 Python 环境
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'  # 指定你的 Python 版本，比如 3.6、3.7 等
+        python-version: '3.x'
 
-    - name: Install dependencies  # 安装依赖
+    - name: Install dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip
+        sudo wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
         python -m pip install --upgrade pip
         pip install DrissionPage
 
-    - name: Run script  # 运行你的 Python 脚本
+    - name: Download ChromeDriver
+      run: |
+        CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
+        wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}"
+        wget "https://chromedriver.storage.googleapis.com/$(cat LATEST_RELEASE_${CHROME_VERSION})/chromedriver_linux64.zip"
+        unzip chromedriver_linux64.zip
+        sudo mv chromedriver /usr/local/bin/
+
+    - name: Run script and generate accounts.txt
       run: python 1.py
+
+    - name: Upload accounts.txt as artifact
+      if: success()
+      uses: actions/upload-artifact@v2
+      with:
+        name: accounts
+        path: accounts.txt
